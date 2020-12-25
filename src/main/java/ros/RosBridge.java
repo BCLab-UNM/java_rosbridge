@@ -63,6 +63,8 @@ public class RosBridge {
 	protected Session session;
 
 	protected Map<String, RosBridgeSubscriber> listeners = new ConcurrentHashMap<String, RosBridge.RosBridgeSubscriber>();
+	protected Map<String, RosListenDelegate> serviceCallbacks = new ConcurrentHashMap<>();
+
 	protected Set<String> publishedTopics = new HashSet<String>();
 
 	protected Map<String, FragmentManager> fragementManagers = new HashMap<String, FragmentManager>();
@@ -239,6 +241,13 @@ public class RosBridge {
 					RosBridgeSubscriber subscriber = this.listeners.get(topic);
 					if(subscriber != null){
 						subscriber.receive(node, msg);
+					}
+				} else if(op.equals("service_response") && node.has("id")) {
+					String id = node.get("id").asText();
+					RosListenDelegate subscriber = this.serviceCallbacks.get(id);
+					if(subscriber != null && node.has("values")) {
+						subscriber.receive(node.get("values"), msg);
+						this.serviceCallbacks.remove(id);
 					}
 				}
 				else if(op.equals("fragment")){
@@ -551,6 +560,46 @@ public class RosBridge {
 			fut.get(2, TimeUnit.SECONDS);
 		}catch (Throwable t){
 			System.out.println("Error publishing to " + topic + " with message type: " + type);
+			t.printStackTrace();
+		}
+
+	}
+
+	public void call(String service, String type, Object msg, RosListenDelegate delegate){
+
+		if(this.session == null){
+			throw new RuntimeException("Rosbridge connection is closed. Cannot publish. Attempted Topic Publish: " + service);
+		}
+
+		String id = UUID.randomUUID().toString();
+		Map<String, Object> jsonMsg = new HashMap<>();
+		jsonMsg.put("op", "call_service");
+		jsonMsg.put("id", id);
+		jsonMsg.put("service", service);
+		if(msg != null) {
+			jsonMsg.put("args", msg);
+		}
+
+		JsonFactory jsonFactory = new JsonFactory();
+		StringWriter writer = new StringWriter();
+		JsonGenerator jsonGenerator;
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		try {
+			jsonGenerator = jsonFactory.createGenerator(writer);
+			objectMapper.writeValue(jsonGenerator, jsonMsg);
+		} catch(Exception e){
+			System.out.println("Error");
+		}
+
+		String jsonMsgString = writer.toString();
+		Future<Void> fut;
+		try{
+			serviceCallbacks.put(id, delegate);
+			fut = session.getRemote().sendStringByFuture(jsonMsgString);
+			fut.get(2, TimeUnit.SECONDS);
+		}catch (Throwable t){
+			System.out.println("Error publishing to " + service + " with message type: " + type);
 			t.printStackTrace();
 		}
 
