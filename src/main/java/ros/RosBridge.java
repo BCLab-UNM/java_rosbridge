@@ -95,17 +95,7 @@ public class RosBridge {
 	 * @param rosBridgeURI the URI to the ROS Bridge websocket server. Note that ROS Bridge by default uses port 9090. An example URI is: ws://localhost:9090
 	 */
 	public void connect(String rosBridgeURI){
-		WebSocketClient client = new WebSocketClient();
-		try {
-			client.start();
-			URI echoUri = new URI(rosBridgeURI);
-			ClientUpgradeRequest request = new ClientUpgradeRequest();
-			client.connect(this, echoUri, request);
-			System.out.printf("Connecting to : %s%n", echoUri);
-
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
+		connect(rosBridgeURI, false);
 	}
 
 	/**
@@ -115,6 +105,7 @@ public class RosBridge {
 	 */
 	public void connect(String rosBridgeURI, boolean waitForConnection){
 		WebSocketClient client = new WebSocketClient();
+		client.getPolicy().setMaxTextMessageSize((int)Math.pow(2, 20));
 		try {
 			client.start();
 			URI echoUri = new URI(rosBridgeURI);
