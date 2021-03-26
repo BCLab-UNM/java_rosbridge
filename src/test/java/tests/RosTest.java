@@ -34,7 +34,7 @@ public class RosTest {
 					public void receive(JsonNode data, String stringRep) {
 						MessageUnpacker<PrimitiveMsg<String>> unpacker = new MessageUnpacker<PrimitiveMsg<String>>(PrimitiveMsg.class);
 						PrimitiveMsg<String> msg = unpacker.unpackRosMessage(data);
-						System.out.println(msg.data);
+						System.out.println(msg.data());
 					}
 				}
 		);
@@ -42,7 +42,7 @@ public class RosTest {
 		Publisher pub = new Publisher("/java_to_ros", "std_msgs/String", bridge);
 
 		for(int i = 0; i < 100; i++) {
-			pub.publish(new PrimitiveMsg<String>("hello from java " + i));
+			pub.publish(PrimitiveMsg.create("hello from java " + i));
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {

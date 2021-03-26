@@ -1,17 +1,21 @@
 package ros.msgs.std_msgs;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.auto.value.AutoValue;
+
 /**
  * @author James MacGlashan.
  */
-public class Time {
-	public int secs;
-	public int nsecs;
+@AutoValue
+public abstract class Time {
+	@JsonProperty
+	public abstract int secs();
+	@JsonProperty
+	public abstract int nsecs();
 
-	public Time() {
-	}
-
-	public Time(int secs, int nsecs) {
-		this.secs = secs;
-		this.nsecs = nsecs;
+	@JsonCreator
+	public static Time create(@JsonProperty("secs") int secs, @JsonProperty("nsecs") int nsecs) {
+		return new AutoValue_Time(secs, nsecs);
 	}
 }

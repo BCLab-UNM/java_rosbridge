@@ -1,5 +1,8 @@
 package ros.msgs.sensor_msgs;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.auto.value.AutoValue;
 import ros.msgs.std_msgs.Header;
 
 import java.awt.image.BufferedImage;
@@ -11,28 +14,36 @@ import java.awt.image.BufferedImage;
  * bgr8, rgb8, or mono8, by using the {@link #toBufferedImage()} method.
  * @author James MacGlashan.
  */
-public class Image {
+@AutoValue
+public abstract class Image {
 
-	public Header header;
-	public int height;
-	public int width;
-	public String encoding;
-	public int is_bigendian;
-	public int step;
-	public byte[] data;
+	@JsonProperty
+	public abstract Header header();
+	@JsonProperty
+	public abstract int height();
+	@JsonProperty
+	public abstract int width();
+	@JsonProperty
+	public abstract String encoding();
+	@JsonProperty
+	public abstract int is_bigendian();
+	@JsonProperty
+	public abstract int step();
+	@JsonProperty
+	public abstract byte[] data();
 
-	public Image() {
+	@JsonCreator
+	public static Image create(@JsonProperty("header") Header header,
+							   @JsonProperty("height") int height,
+							   @JsonProperty("width") int width,
+							   @JsonProperty("encoding") String encoding,
+							   @JsonProperty("is_bigendian") int is_bigendian,
+							   @JsonProperty("step") int step,
+							   @JsonProperty("data") byte[] data) {
+		return new AutoValue_Image(header, height, width, encoding, is_bigendian, step, data);
 	}
 
-	public Image(Header header, int height, int width, String encoding, int is_bigendian, int step, byte[] data) {
-		this.header = header;
-		this.height = height;
-		this.width = width;
-		this.encoding = encoding;
-		this.is_bigendian = is_bigendian;
-		this.step = step;
-		this.data = data;
-	}
+
 
 	/**
 	 * Constructs a {@link BufferedImage} from this ROS Image, provided the encoding is either rgb8, bgr8, or mono8.
@@ -41,15 +52,15 @@ public class Image {
 	 */
 	public BufferedImage toBufferedImage(){
 
-		if(this.encoding.equals("bgr8") || this.encoding.equals("rgb8")){
+		if(encoding().equals("bgr8") || encoding().equals("rgb8")){
 			return this.toBufferedImageFromRGB8();
 		}
-		else if(this.encoding.equals("mono8")){
+		else if(encoding().equals("mono8")){
 			return this.toBufferedImageFromMono8();
 		}
 
 
-		throw new RuntimeException("ROS Image does not currently decode " + this.encoding + ". See Java doc for support types.");
+		throw new RuntimeException("ROS Image does not currently decode " + encoding() + ". See Java doc for support types.");
 	}
 
 
@@ -58,8 +69,8 @@ public class Image {
 	 * @return a {@link BufferedImage} representation of this image.
 	 */
 	protected BufferedImage toBufferedImageFromMono8(){
-		int w = this.width;
-		int h = this.height;
+		int w = width();
+		int h = height();
 
 		BufferedImage i = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 		for (int y = 0; y < h; ++y) {
@@ -68,7 +79,7 @@ public class Image {
 				//row major
 				int index = (y * w) + x;
 				// combine to RGB format
-				int anded = data[index++] & 0xFF;
+				int anded = data()[index++] & 0xFF;
 				int rgb = anded |
 						(anded << 8) |
 						(anded << 16) |
@@ -88,8 +99,8 @@ public class Image {
 	 */
 	protected BufferedImage toBufferedImageFromRGB8(){
 
-		int w = this.width;
-		int h = this.height;
+		int w = width();
+		int h = height();
 
 		BufferedImage i = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 		for (int y = 0; y < h; ++y) {
@@ -99,20 +110,20 @@ public class Image {
 				int index = (y * w * 3) + (x * 3);
 				// combine to RGB format
 				int rgb;
-				if(this.encoding.equals("bgr8")){
-					rgb = ((data[index++] & 0xFF)) |
-							((data[index++] & 0xFF) << 8) |
-							((data[index++] & 0xFF) << 16) |
+				if(encoding().equals("bgr8")){
+					rgb = ((data()[index++] & 0xFF)) |
+							((data()[index++] & 0xFF) << 8) |
+							((data()[index++] & 0xFF) << 16) |
 							0xFF000000;
 				}
-				else if(this.encoding.equals("rgb8")){
-					rgb = ((data[index++] & 0xFF) << 16) |
-							((data[index++] & 0xFF) << 8) |
-							((data[index++] & 0xFF)) |
+				else if(encoding().equals("rgb8")){
+					rgb = ((data()[index++] & 0xFF) << 16) |
+							((data()[index++] & 0xFF) << 8) |
+							((data()[index++] & 0xFF)) |
 							0xFF000000;
 				}
 				else{
-					throw new RuntimeException("ROS Image toBufferedImageFromRGB8 does not decode " + this.encoding);
+					throw new RuntimeException("ROS Image toBufferedImageFromRGB8 does not decode " + encoding());
 				}
 				i.setRGB(x, y, rgb);
 			}

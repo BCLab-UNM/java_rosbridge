@@ -1,21 +1,25 @@
 package ros.msgs.std_msgs;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.auto.value.AutoValue;
+
 /**
  * @author James MacGlashan.
  */
-public class Header {
+@AutoValue
+public abstract class Header {
 
-	public int seq;
-	public Time stamp;
-	public String frame_id;
+	@JsonProperty
+	public abstract int seq();
+	@JsonProperty
+	public abstract Time stamp();
+	@JsonProperty
+	public abstract String frame_id();
 
-	public Header() {
+	@JsonCreator
+	public static Header create(@JsonProperty("seq") int seq, @JsonProperty("stamp") Time stamp, @JsonProperty("frame_id") String frame_id) {
+		return new AutoValue_Header(seq, stamp, frame_id);
 	}
-
-	public Header(int seq, Time stamp, String frame_id) {
-		this.seq = seq;
-		this.stamp = stamp;
-		this.frame_id = frame_id;
-	}
-
 }
