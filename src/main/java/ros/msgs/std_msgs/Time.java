@@ -18,4 +18,9 @@ public abstract class Time {
 	public static Time create(@JsonProperty("secs") int secs, @JsonProperty("nsecs") int nsecs) {
 		return new AutoValue_Time(secs, nsecs);
 	}
+
+	public static Time now() {
+		int timeInSeconds = (int)(System.currentTimeMillis() / 1000);
+		return create(timeInSeconds, 0);
+	}
 }
