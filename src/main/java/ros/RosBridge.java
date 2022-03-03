@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
@@ -505,12 +506,14 @@ public class RosBridge {
 		StringWriter writer = new StringWriter();
 		JsonGenerator jsonGenerator;
 		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
 		try {
 			jsonGenerator = jsonFactory.createGenerator(writer);
 			objectMapper.writeValue(jsonGenerator, jsonMsg);
 		} catch(Exception e){
-			System.out.println("Error");
+			System.out.println("Error wile marshalling json");
+			e.printStackTrace();
 		}
 
 		String jsonMsgString = writer.toString();
@@ -575,12 +578,14 @@ public class RosBridge {
 		StringWriter writer = new StringWriter();
 		JsonGenerator jsonGenerator;
 		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
 		try {
 			jsonGenerator = jsonFactory.createGenerator(writer);
 			objectMapper.writeValue(jsonGenerator, jsonMsg);
 		} catch(Exception e){
-			System.out.println("Error");
+			System.out.println("Error wile marshalling json");
+			e.printStackTrace();
 		}
 
 		String jsonMsgString = writer.toString();
